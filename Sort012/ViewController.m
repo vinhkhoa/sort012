@@ -5,10 +5,11 @@
 //  Created by Vinh Khoa Nguyen on 14/11/2015.
 //  Copyright © 2015 Vinh Khoa Nguyen. All rights reserved.
 //
+//  Sort an array containing only 0s, 1s or 2s
 
 #import "ViewController.h"
 
-static NSUInteger const kArraySize = 5;
+static NSUInteger const kArraySize = 6; // Change this value to test with array combinations of different sizes
 static NSUInteger const kArrayPossibleValues = 3; // Even though this appears to be a constant that can be changed, it in fact has to be 3 as our sort functions expect this to be 3 :-)
 
 @implementation ViewController
@@ -17,18 +18,33 @@ static NSUInteger const kArrayPossibleValues = 3; // Even though this appears to
 {
 	[super viewDidLoad];
 
-	// Get all the possible combinations of 0, 1 & 2 in an array of certain size. Sort them to make the result easier to follow
+	// Get all the possible combinations of 0, 1 & 2 in an array of certain size.
+	// Sort them to make the result easier to follow. The list should be sorted by default anyway but do this just in case.
 	NSMutableArray *arrays = [self allArrayCombinationsOfSize:kArraySize];
 	[arrays sortedArrayUsingComparator:^NSComparisonResult(NSArray *array1, NSArray *array2) {
 		return [[self concatenateValuesInArray:array1] compare:[self concatenateValuesInArray:array2]];
 	}];
 
+	NSDate *startTime = [NSDate date];
+
 	// Sort each of the array inside the arrays and assert that they are in fact sorted
 	for (NSMutableArray *array in arrays) {
-		[self sortArrayAndLog:array];
+		// Sort the array and display its result in NSLog
+		NSString *before = [self concatenateValuesInArray:array];
+		[self sortArray:array];
+		NSString *after = [self concatenateValuesInArray:array];
+		NSLog(@"%@ -> %@", before, after);
 
+		// Stop if any array is not correctly sorted
 		NSAssert([self validateSortedArray:array], @"Array not sorted");
 	}
+
+	// Calculate elapsed time
+	NSDate *endTime = [NSDate date];
+	NSDateComponents *components = [[NSCalendar currentCalendar] components:NSCalendarUnitNanosecond fromDate:startTime toDate:endTime options:0];
+	NSLog(@"Sorted %lu arrays in %.0fms.", (unsigned long)arrays.count, ((double)components.nanosecond / 1000000));
+
+	[[[UIAlertView alloc] initWithTitle:@"Finished" message:@"All arrays have been sorted. Please see logs for results." delegate:nil cancelButtonTitle:@"Close" otherButtonTitles:nil] show];
 }
 
 
@@ -61,15 +77,6 @@ static NSUInteger const kArrayPossibleValues = 3; // Even though this appears to
 	}
 }
 
-/// Sort the array and display its result in NSLog
-- (void)sortArrayAndLog:(NSMutableArray *)array
-{
-	NSString *before = [self concatenateValuesInArray:array];
-	[self sortArray:array];
-	NSString *after = [self concatenateValuesInArray:array];
-	NSLog(@"%@ -> %@", before, after);
-}
-
 
 #pragma mark - Swapping
 
@@ -95,12 +102,7 @@ static NSUInteger const kArrayPossibleValues = 3; // Even though this appears to
 /// Concatenate all of the array values together into a single string
 - (NSString *)concatenateValuesInArray:(NSArray *)array
 {
-	NSMutableString *string = [NSMutableString string];
-	for (NSNumber *number in array) {
-		[string appendFormat:@"%d", number.intValue];
-	}
-
-	return [string copy];
+	return [array componentsJoinedByString:@""];
 }
 
 /// Recursive function to generate all possible combinations of an array of 0s, 1s & 2s
@@ -147,7 +149,7 @@ static NSUInteger const kArrayPossibleValues = 3; // Even though this appears to
 	return result;
 }
 
-/// Return YES if the array is sorted, NO otherwise.
+/// Return YES if the array is sorted in ascending order, NO otherwise.
 - (BOOL)validateSortedArray:(NSArray *)array
 {
 	BOOL result = YES;
